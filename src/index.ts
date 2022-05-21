@@ -1,24 +1,28 @@
-import { PostgresSource } from "./database/data-source";
-import { Ficha } from "./models/Ficha";
-import { User } from "./models/User";
+import { Client, Intents, Collection } from 'discord.js'
+import * as fs from 'fs';
+import * as Dotdot from 'dotenv';
+import { Handler } from './Handlers/Handler';
+Dotdot.config();
 
-PostgresSource.initialize().then(async () => {
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const handler = new Handler();
 
-    console.log("Inserting a new user into the database...")
-    const user = new User()
-    user.firstName = "Timber"
-    user.lastName = "Saw"
-    user.age = 24
-    await PostgresSource.manager.save(user)
-    console.log("Saved a new user with id: " + user.id)
 
-    console.log("Loading users from the database...")
-    const users = await PostgresSource.manager.find(User)
-    const fichas = await PostgresSource.manager.find(Ficha)
+ handler.commands = new Collection();
 
-    console.log("Loaded users: ", users)
-    console.log("Fichas carregadas: ", fichas)
 
-    console.log("Here you can setup and run express / fastify / any other framework.")
+ const functions = fs.readdirSync("./src/functions").filter(file => file.endsWith("js"))
+ const eventFiles = fs.readdirSync("./src/events").filter(file => file.endsWith("js"))
+ const commandFolders = fs.readdirSync("./src/commands");
 
-}).catch(error => console.log(error))
+
+(async () => {
+	 for (const file of functions){
+	 	require(`./functions/${file}`)(client)
+	 }
+	
+	client.handleEvents(eventFiles, "./src/events");
+	client.handleCommands(commandFolders, "./src/commands");
+	client.login(process.env.TOKEN);
+	
+})();
