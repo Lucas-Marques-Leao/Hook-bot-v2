@@ -1,5 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
+import * as DOTDOT from 'dotenv';
+DOTDOT.config();
 
 
 
@@ -8,7 +10,7 @@ export const PostgresSource = new DataSource({
     host: "localhost",
     port: 5433,
     username: "postgres",
-    password: "ZXCV1324",
+    password: process.env.PGPassword,
     database: "Hook_bot_v2",
     synchronize: false,
     logging: true,
