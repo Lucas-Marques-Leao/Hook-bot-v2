@@ -1,99 +1,109 @@
-import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn } from "typeorm"
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from "typeorm"
+import { Armas } from "./Armas";
 
 @Entity('fichas')
 export class Ficha {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string
+    id: string;
 
-    @PrimaryColumn()
-    author_id: string
+    @Column()
+    author_id: string;
 
     @Column({
-        unique:true
+        unique: true
     })
-    nome_ficha: string
+    nome_ficha: string;
 
     @Column({
         length: 15
     })
-    raça: string
+    raça: string;
 
     @Column({
-        default: 'x-anos'
+        default: 10,
+        nullable: true
     })
-    idade: string
+    idade: number;
 
     @Column()
-    foto: string
+    foto: string;
 
     @Column()
-    classe_pri: string
+    classe_pri: string;
 
     @Column({
         default: 1
     })
-    nivel_pri: number
+    nivel_pri: number;
 
     @Column({
-        default: 'nenhuma'
+        default: 'nenhuma',
+        nullable: true
     })
-    classe_sec: string
+    classe_sec: string;
 
     @Column({
-        default: 0
+        default: 0,
+        nullable: true
     })
-    nivel_sec: number
-
-    @Column({
-        default: 10
-    })
-    str_at: number
+    nivel_sec: number;
 
     @Column({
         default: 10
     })
-    dex_at: number
+    str_at: number;
 
     @Column({
         default: 10
     })
-    con_at: number
+    dex_at: number;
 
     @Column({
         default: 10
     })
-    int_at: number
+    con_at: number;
 
     @Column({
         default: 10
     })
-    wis_at: number
+    int_at: number;
 
     @Column({
         default: 10
     })
-    cha_at: number
+    wis_at: number;
+
+    @Column({
+        default: 10
+    })
+    cha_at: number;
 
     @Column({
         default: 5
     })
-    saude: number
+    saude: number;
 
     @Column({
         default: 0
     })
-    saude_temp: number
+    saude_temp: number;
 
     @Column({
-        default: 0
+        default: 0,
+        nullable: true
     })
-    nivel_conj: number
+    nivel_conj: number;
 
-    @CreateDateColumn()
-    created_At: Date
+    @ManyToMany(type => Armas, { eager: true, cascade: true})
+    @JoinTable()
+    armas_inventario: Armas[];
 
-    @UpdateDateColumn()
-    updated_At: Date
+    @CreateDateColumn({ name: 'created_At'})
+    createdAt: Date
+
+    @UpdateDateColumn({ name: 'updated_At'})
+    updatedAt: Date
 
 }
+

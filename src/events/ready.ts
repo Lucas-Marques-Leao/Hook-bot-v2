@@ -1,30 +1,19 @@
+import { Event } from '../Interfaces';
 import * as DotDot from 'dotenv';
-import { DataSource } from 'typeorm';
+import { createConnection } from 'typeorm';
 import 'reflect-metadata';
 DotDot.config();
 
 
 
-export = {
+export const event: Event = {
     name: 'ready',
-    once: true,
-    async execute(){
-        console.log(`O Bot tá pronto!`);
-        const PostgresSource = new DataSource({
-            type: "postgres",
-            host: "localhost",
-            port: 5433,
-            username: "postgres",
-            password: process.env.PGPassword,
-            database: "Hook_bot_v2",
-            synchronize: false,
-            logging: true,
-            entities: ["src/models/*.ts"],
-            migrations: ["src/database/migrations/*.ts"],
-            subscribers: [],
-        })
+    run: (client) => { 
         
-        PostgresSource.initialize()
+        console.log(`O Bot ${client.user!.tag} tá pronto!`);
+        
+        
+        createConnection()
             .then(() => {
                 console.log('Conectou-se ao Banco de Dados')
            
