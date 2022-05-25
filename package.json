@@ -1,5 +1,5 @@
 {
-  "name": "test_hook_bot",
+  "name": "hook_bot_ts",
   "version": "1.0.0",
   "main": "index.ts",
   "license": "MIT",
