@@ -1,4 +1,4 @@
-import { getConnection, getRepository } from 'typeorm'; 
+import { getRepository } from 'typeorm'; 
 import { Command } from '../../Interfaces';
 import { Ficha } from '../../models/Ficha';
 

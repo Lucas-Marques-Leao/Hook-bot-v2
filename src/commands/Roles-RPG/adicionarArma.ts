@@ -84,7 +84,7 @@ export const slash: Command = {
 
 
 
-            return interaction.reply({ content: `A Arma ${nomeArma}, foi adicionada com Sucesso! para ${nome}`});
+            return interaction.reply({ content: `A Arma ${nomeArma}, foi adicionada com sucesso para ${nome}!`});
             
             
         } catch (err) {
