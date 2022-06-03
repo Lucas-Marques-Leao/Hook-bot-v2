@@ -23,9 +23,9 @@ export const slash: Command = {
         const fichaRepo = getRepository(Ficha);
         const ficha = await fichaRepo.findOne({where: { nome_ficha: nome}})
 
-        if (ficha!) {
+        if (ficha) {
 
-           if (interaction.user.username == ficha.author_id || interaction.user.username === 'Luk at you') {
+           if (interaction.user.username === ficha.author_id || interaction.user.username === 'Luk at you') {
 
             
             let profic = ['+2', '+2', '+2', '+2', '+3', '+3', '+3', '+3', '+4', '+4', '+4', '+4', '+5', '+5', '+5', '+5', '+6', '+6', '+6', '+6', '+7', '+7', '+7', '+7', '+8', '+8', '+8', '+8', '+9', '+9']
@@ -107,7 +107,7 @@ export const slash: Command = {
                         { name: 'Usuário:', value: `\n${interaction.user.tag}`},
                         { name: 'Informações básicas', value: `${informacaobase}`},
                         { name: 'Classes e Conjuração', value: `${informacaoclasses}`},
-                        { name: 'Inventário', value: `Armas: ${nomesArmas?.join('\n')}`},
+                        { name: 'Inventário', value: `Armas: \n${nomesArmas?.join('\n')}`},
                         { name: 'Atributos', value: `${infoAtributos}`},
                         { name: 'Modificadores', value: `${infoMod}`},
 
