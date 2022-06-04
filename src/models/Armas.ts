@@ -7,7 +7,10 @@ export class Armas {
     id: string
 
     @Column()
-    nome_arma: string
+    nome_arma: string;
+
+    @Column({ nullable: true, default: 'Uma Arma elegante, para tempos mais Civilizados'})
+    descrição: string;
 
     @Column({ nullable: true, default: 0})
     bonus_magico: number;

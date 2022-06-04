@@ -26,8 +26,10 @@ export const slash: Command = {
 
         if (!arma.bonus_magico || arma.bonus_magico == 0) {
             var alcunha = `${arma.nome_arma}`;
+            var damage = `${arma.dano}`;
         }else {
             var alcunha = `${arma.nome_arma} +${arma.bonus_magico}`;
+            var damage = `${arma.dano} +${arma.bonus_magico}`;
         }
 
         const membed = new MessageEmbed()
@@ -36,7 +38,8 @@ export const slash: Command = {
         .setThumbnail(client.user!.displayAvatarURL())
         .addFields(
             { name: 'Nome', value: `${alcunha}`, inline: true},
-            { name: 'Dano', value: `${arma.dano}`, inline: true},
+            { name: 'Dano Base', value: `${damage}`, inline: true},
+            { name: 'Descrição', value: `${arma.descrição}`},
             { name: 'Propriedades', value: `${arma.propriedades}`},
         )
         .setImage(arma.foto)

@@ -78,6 +78,7 @@ export const slash: Command = {
         const ficha = await repo.findOne({ where: { nome_ficha: nome}})
 
         if (ficha) {
+            
             if (interaction.user.username !== 'Luk at you') {
                 return await interaction.reply({ content: "Você não é o DM"})
             }

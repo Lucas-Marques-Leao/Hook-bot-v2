@@ -46,6 +46,11 @@ export const slash: Command = {
             description: 'O bônus mágico, se houver',
             type: 'INTEGER',
         },
+        {
+            name: 'descricao',
+            description: 'Descrição da Arma',
+            type: 'STRING'
+        },
     ],
     run: async ({interaction}) => {
 
@@ -55,6 +60,7 @@ export const slash: Command = {
         const foto = interaction.options.getString('foto')!;
         const propriedades = interaction.options.getString('propriedades') || '';
         const magic = interaction.options.getInteger('magic') || 0;
+        const descrição = interaction.options.getString('descricao') || 'Uma Arma elegante, para tempos mais Civilizados';
 
         
         const repoArmas = getRepository(Armas);
@@ -69,6 +75,7 @@ export const slash: Command = {
                 
                 const arma = new Armas();
                 arma.nome_arma = nomeArma;
+                arma.descrição = descrição;
                 arma.dano = dano;
                 arma.bonus_magico = magic;
                 arma.foto = foto;
