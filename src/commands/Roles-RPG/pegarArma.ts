@@ -28,14 +28,13 @@ export const slash: Command = {
 
         const repoFicha = getRepository(Ficha);
         const repoArmas = getRepository(Armas);
+        const ficha = await repoFicha.findOne({ where: { nome_ficha: nome}});
+        const arma = await repoArmas.findOne({ where: { id: id}});
+
+        if (!ficha || !arma) return await interaction.reply({ content: "Ficha ou Arma não encontradas."});
         
 
         try {
-
-            const ficha = await repoFicha.findOne({ where: { nome_ficha: nome}});
-            const arma = await repoArmas.findOne({ where: { id: id}});
-
-            if (!ficha || !arma) return await interaction.reply({ content: "Ficha ou Arma não encontradas."});
 
             ficha.armas_inventario.push(arma);
             await repoFicha.save(ficha);

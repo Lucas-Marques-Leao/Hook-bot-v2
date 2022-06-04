@@ -21,7 +21,8 @@ export const slash: Command = {
                 { name: '/deletarma', value: 'Comando para Deletar uma Arma.\n Uso exclusivo do DM!'},
                 { name: '/armarse', value: 'Comando para Criar uma Arma existente dentro de uma Ficha pelo ID\n Uso exclusivo do DM!'},
                 { name: '/idarsenal', value: 'Comando para Mostrar todas as Armas e seus Ids'},
-                { name: '/arsenal', value: 'Comando para Mostrar todas Armas Existentes'}
+                { name: '/arsenal', value: 'Comando para Mostrar todas Armas Existentes'},
+                { name: '/verarma', value: 'Comando para Mostrar as Informações de uma Arma pelo seu ID'},
             )
             .setTimestamp()
             .setFooter({
