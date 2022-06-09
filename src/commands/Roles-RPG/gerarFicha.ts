@@ -1,3 +1,4 @@
+import { validate } from 'class-validator';
 import { getRepository } from 'typeorm'; 
 import { Command } from '../../Interfaces';
 import { Ficha } from '../../models/Ficha';
@@ -72,9 +73,16 @@ export const slash: Command = {
             ficha.nivel_pri = nivel;
             ficha.foto = foto;
 
-            await repo.save(ficha);
-            
-            return interaction.reply(`a Ficha de: ${nome}, da raça ${raça} e da classe ${classe} foi adicionada por ${interaction.user.username}`);
+            const errors = await validate(ficha)
+
+            if (errors.length === 0) {
+                await repo.save(ficha);
+                return interaction.reply(`A Ficha de: ${nome}, da raça ${raça} e da classe ${classe} foi adicionada por ${interaction.user.username}`);
+
+            }else{
+                return interaction.reply({ content: `Você fez a ficha como um macaco, ERROS: \n${errors}`, ephemeral: true})
+            }
+
             
         }catch(err) {
             console.error(err);

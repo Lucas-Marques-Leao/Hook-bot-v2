@@ -14,11 +14,17 @@ export const slash: Command = {
             description: 'O nome da Ficha',
             type: 'STRING',
             required: true
-        }   
+        },
+        {
+            name: 'mostrar',
+            description: 'Marque true se quiser que todos vejam sua ficha',
+            type: 'BOOLEAN'
+        }
     ],
     run: async ({interaction, client}) => {
 
         const nome = interaction.options.getString('nome')!;
+        const mostrar = interaction.options.getBoolean('mostrar');
 
         const fichaRepo = getRepository(Ficha);
         const ficha = await fichaRepo.findOne({where: { nome_ficha: nome}})
@@ -116,7 +122,10 @@ export const slash: Command = {
                     .setTimestamp()
                     .setFooter({ text: `${client.user!.tag}`})
                     .setColor('RANDOM');
-
+                    
+                    if (mostrar == true) {
+                       return await interaction.reply({ embeds: [membed], ephemeral: false});
+                    }
                     return await interaction.reply({ embeds: [membed], ephemeral: true});
             
         }else{
