@@ -13,11 +13,17 @@ export const slash: Command = {
             description: 'id da arma',
             type: 'STRING',
             required: true,
+        },
+        {
+            name: 'mostrar',
+            description: 'Marque True se quiser que outros vejam',
+            type: 'BOOLEAN'
         }
     ],
     run: async ({interaction, client}) => {
 
         const id = interaction.options.getString('id')!;
+        const mostrar = interaction.options.getBoolean('mostrar');
 
         const repo = getRepository(Armas);
         const arma = await repo.findOne({ where: { id: id}});
@@ -47,6 +53,9 @@ export const slash: Command = {
         .setFooter({ text: `${client.user!.tag}`})
         .setColor('RANDOM');
 
+        if (mostrar == true) {
+            return await interaction.reply({ embeds: [membed], ephemeral: false});
+        }
         return await interaction.reply({ embeds: [membed], ephemeral: true});
         
 
