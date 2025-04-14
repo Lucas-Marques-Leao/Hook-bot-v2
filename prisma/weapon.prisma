@@ -1,0 +1,15 @@
+model Weapon {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("Uma Arma elegante, para tempos mais Civilizados")
+  magicBonus  Int      @default(0)
+  damage      String
+  properties  String   @default("Existe, e é isso")
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  characters Character[] @relation("Inventory")
+
+  @@map("weapons")
+}

@@ -1,0 +1,30 @@
+model Character {
+  id             String @id @default(cuid())
+  authorId       String
+  characterName  String @unique
+  race           String @db.VarChar(15)
+  age            Int    @default(10)
+  imageUrl       String
+  primaryClass   String
+  primaryLevel   Int    @default(1)
+  secondaryClass String @default("nenhuma")
+  secondaryLevel Int    @default(0)
+
+  strength     Int @default(10)
+  dexterity    Int @default(10)
+  constitution Int @default(10)
+  intelligence Int @default(10)
+  wisdom       Int @default(10)
+  charisma     Int @default(10)
+
+  health     Int @default(5)
+  tempHealth Int @default(0)
+  spellLevel Int @default(0)
+
+  inventory Weapon[] @relation("Inventory")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("characters")
+}
