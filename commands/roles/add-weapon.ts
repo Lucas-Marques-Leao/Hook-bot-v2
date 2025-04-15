@@ -1,98 +1,114 @@
-import { getConnection, getRepository } from 'typeorm';
-import { Command } from '../../interfaces';
-import { Ficha } from '../../models/Ficha';
-import { Armas } from '../../models/Armas';
+import {
+  ApplicationCommandDataResolvable,
+  ChatInputCommandInteraction,
+} from 'discord.js';
+import prisma from '../../lib/db';
 
-const slash: Command = {
-  name: 'addarma',
-  description: 'Adicionar uma Arma a uma ficha',
-  testOnly: true,
-  options: [
-    {
-      name: 'nome',
-      description: 'O nome da Ficha',
-      type: 'STRING',
-      required: true,
-    },
-    {
-      name: 'arma',
-      description: 'O nome da Arma',
-      type: 'STRING',
-      required: true,
-    },
-    {
-      name: 'dano',
-      description: 'O nome da Arma',
-      type: 'STRING',
-      required: true,
-    },
-    {
-      name: 'foto',
-      description: 'A foto da Arma',
-      type: 'STRING',
-      required: true,
-    },
-    {
-      name: 'propriedades',
-      description: 'As propriedades, se houverem',
-      type: 'STRING',
-    },
-    {
-      name: 'magic',
-      description: 'O bônus mágico, se houver',
-      type: 'INTEGER',
-    },
-    {
-      name: 'descricao',
-      description: 'Descrição da Arma',
-      type: 'STRING',
-    },
-  ],
-  run: async ({ interaction }) => {
-    const nome = interaction.options.getString('nome')!;
-    const nomeArma = interaction.options.getString('arma')!;
-    const dano = interaction.options.getString('dano')!;
-    const foto = interaction.options.getString('foto')!;
-    const propriedades = interaction.options.getString('propriedades') || '';
-    const magic = interaction.options.getInteger('magic') || 0;
-    const descrição =
-      interaction.options.getString('descricao') ||
+const slash = {
+  data: {
+    name: 'addweapon',
+    description: 'Adicionar uma arma a uma ficha',
+    options: [
+      {
+        name: 'character',
+        description: 'Nome da ficha',
+        type: 3, // STRING
+        required: true,
+      },
+      {
+        name: 'name',
+        description: 'Nome da arma',
+        type: 3,
+        required: true,
+      },
+      {
+        name: 'damage',
+        description: 'Dado de dano',
+        type: 3,
+        required: true,
+      },
+      {
+        name: 'image',
+        description: 'URL da imagem',
+        type: 3,
+        required: true,
+      },
+      {
+        name: 'properties',
+        description: 'Propriedades (opcional)',
+        type: 3,
+        required: false,
+      },
+      {
+        name: 'magic',
+        description: 'Bônus mágico',
+        type: 4,
+        required: false,
+      },
+      {
+        name: 'description',
+        description: 'Descrição da arma',
+        type: 3,
+        required: false,
+      },
+    ],
+  } satisfies ApplicationCommandDataResolvable,
+
+
+   run: async (interaction: ChatInputCommandInteraction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    const characterName = interaction.options.getString('character', true);
+    const weaponName = interaction.options.getString('name', true);
+    const damage = interaction.options.getString('damage', true);
+    const imageUrl = interaction.options.getString('image', true);
+    const properties = interaction.options.getString('properties') ?? 'Existe, e é isso';
+    const magicBonus = interaction.options.getInteger('magic') ?? 0;
+    const description =
+      interaction.options.getString('description') ??
       'Uma Arma elegante, para tempos mais Civilizados';
 
-    const repoArmas = getRepository(Armas);
-    const repoFicha = getRepository(Ficha);
-    const ficha = await repoFicha.findOne({ where: { nome_ficha: nome } });
+    const character = await prisma.character.findFirst({
+      where: { characterName },
+    });
 
-    if (!ficha) return interaction.reply({ content: 'Ficha não encontrada' });
+    if (!character) {
+      return interaction.reply({ content: 'Ficha não encontrada.' });
+    }
 
     if (
-      interaction.user.username === ficha.author_id ||
+      interaction.user.id === character.authorId ||
       interaction.user.username === 'Luk at you'
     ) {
       try {
-        const arma = new Armas();
-        arma.nome_arma = nomeArma;
-        arma.descrição = descrição;
-        arma.dano = dano;
-        arma.bonus_magico = magic;
-        arma.foto = foto;
-        arma.propriedades = propriedades;
-
-        ficha.armas_inventario.push(arma);
-
-        await repoArmas.save(arma);
-        await repoFicha.save(ficha);
+        const newWeapon = await prisma.weapon.create({
+          data: {
+            name: weaponName,
+            description,
+            magicBonus,
+            damage,
+            properties,
+            imageUrl,
+            characters: {
+              connect: { id: character.id },
+            },
+          },
+        });
 
         return interaction.reply({
-          content: `A Arma ${nomeArma}, foi adicionada com sucesso para ${nome}!`,
+          content: `A arma **${newWeapon.name}** foi adicionada com sucesso à ficha **${character.characterName}**!`,
         });
       } catch (err) {
-        console.log(err);
-        return await interaction.reply({
-          content: 'Algo deu errado ao adicionar suas Armas',
+        console.error(err);
+        return interaction.reply({
+          content: 'Erro ao adicionar a arma à ficha.',
         });
       }
     }
+
+    return interaction.reply({
+      content: 'Você não tem permissão para editar esta ficha.',
+    });
   },
 };
 

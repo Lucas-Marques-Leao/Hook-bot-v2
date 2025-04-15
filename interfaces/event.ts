@@ -2,7 +2,7 @@ import { ClientEvents } from 'discord.js';
 import Client from '../client';
 
 interface Run {
-  (client: Client, ...args: never[]): never;
+  (client: Client, ...args: any[]): any;
 }
 
 export interface Event {

@@ -1,9 +1,7 @@
 import { Message, MessageEmbed, Permissions } from 'discord.js';
-import * as DOTDOT from 'dotenv';
 import { Command, Event } from '../interfaces';
 import { env } from 'config/env';
 
-DOTDOT.config();
 
 export const event: Event = {
   name: 'messageCreate',

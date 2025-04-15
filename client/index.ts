@@ -2,85 +2,85 @@ import {
   Client,
   Collection,
   ApplicationCommandDataResolvable,
+  CommandInteraction,
+  Partials,
+  Events,
 } from 'discord.js';
 import { readdirSync } from 'fs';
-import path = require('path');
-import { Command, Event, RegisterCommandOptions } from '../interfaces';
+import path from 'path';
+import { env } from 'config/env';
 
-class ExtendedClient extends Client {
-  public commands: Collection<string, Command> = new Collection();
+export type BotCommand = {
+  data: ApplicationCommandDataResolvable;
+  run: (interaction: CommandInteraction) => unknown;
+};
 
-  public events: Collection<string, Event> = new Collection();
+export class ExtendedClient extends Client {
+  public commands = new Collection<string, BotCommand>();
 
-  public aliases: Collection<string, Command> = new Collection();
-
-  public config = process.env;
-
-  public constructor() {
+  constructor() {
     super({
-      intents: ['GUILD_MESSAGES'],
-      partials: ['CHANNEL', 'GUILD_MEMBER', 'USER', 'MESSAGE'],
+      intents: ["GuildMessages","Guilds"],
+      partials: [Partials.Channel, Partials.GuildMember, Partials.User, Partials.Message ],
     });
   }
 
-  async importFile(filepath: string) {
-    return (await import(filepath))?.slash;
+  async importFile(filePath: string): Promise<BotCommand | undefined> {
+    const imported = await import(filePath);
+    return imported.default as BotCommand;
   }
 
-  async registerCommands({ commands, guildId }: RegisterCommandOptions) {
+  async registerCommands(commands: ApplicationCommandDataResolvable[], guildId?: string) {
     if (guildId) {
       this.guilds.cache.get(guildId)?.commands.set(commands);
-      console.log('Comandos registrados no Servidor');
+      console.log('✅ Comandos registrados localmente');
     } else {
       this.application?.commands.set(commands);
-      console.log('Comandos Registrados Globalmente');
+      console.log('✅ Comandos registrados globalmente');
     }
   }
 
   async registerModules() {
     const slashCommands: ApplicationCommandDataResolvable[] = [];
-
     const commandPath = path.join(__dirname, '..', 'Commands');
-    readdirSync(commandPath).forEach(dir => {
-      const commands = readdirSync(`${commandPath}/${dir}`).filter(file =>
-        file.endsWith('.ts'),
-      );
 
-      commands.forEach(async file => {
-        const command: Command = await this.importFile(
-          `${commandPath}/${dir}/${file}`,
-        );
-        console.log(`${command.name} foi carregado com Sucesso!`);
-        if (!command.name) return;
-        this.commands.set(command.name, command);
-        slashCommands.push(command);
-      });
-    });
+    for (const dir of readdirSync(commandPath)) {
+      const files = readdirSync(`${commandPath}/${dir}`).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
 
-    this.on('ready', () => {
-      this.registerCommands({
-        commands: slashCommands,
-        guildId: process.env.TESTSERVER!,
-      });
+      for (const file of files) {
+        const filePath = `${commandPath}/${dir}/${file}`;
+        const command = await this.importFile(filePath);
+
+        if (!command || !command.data || !('name' in command.data)) continue;
+
+        this.commands.set(command.data.name, command);
+        slashCommands.push(command.data);
+        console.log(`✅ Comando carregado: ${command.data.name}`);
+      }
+    }
+
+    this.on(Events.ClientReady, () => {
+      this.registerCommands(slashCommands, env.TESTSERVER);
     });
   }
 
-  public async init() {
-    this.login(this.config.TOKEN);
-    this.registerModules();
+  async init() {
+    this.on(Events.Error, console.error);
+    this.on(Events.Warn, console.warn);
 
-    if (!this.config.TESTSERVER!)
-      console.log('Id do Servidor de testes não configurado.');
+    await this.login(env.TOKEN);
+    await this.registerModules();
 
-    // Events
-    const eventPath = path.join(__dirname, '..', 'Events');
-    readdirSync(eventPath).forEach(async file => {
+    if (!env.TESTSERVER) {
+      console.log('⚠️ TESTSERVER não configurado.');
+    }
+
+    const eventPath = path.join(__dirname, '..', 'events');
+    for (const file of readdirSync(eventPath)) {
       const { event } = await import(`${eventPath}/${file}`);
-      this.events.set(event.name, event);
-      console.log(event);
+      if (!event?.name || !event?.run) continue;
       this.on(event.name, event.run.bind(null, this));
-    });
+      console.log(`📡 Evento registrado: ${event.name}`);
+    }
   }
 }
-
-export default ExtendedClient;

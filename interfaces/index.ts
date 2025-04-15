@@ -1,3 +1,2 @@
-export { Command } from './Command';
-export { Event } from './Event';
-export { RegisterCommandOptions } from './Client';
+export { Event } from './event';
+export { RegisterCommandOptions } from './client';
