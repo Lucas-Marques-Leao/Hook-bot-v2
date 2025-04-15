@@ -1,6 +1,6 @@
 import { validate } from 'class-validator';
 import { getRepository } from 'typeorm';
-import { Command } from '../../Interfaces';
+import { Command } from '../../interfaces';
 import { Ficha } from '../../models/Ficha';
 
 export const slash: Command = {

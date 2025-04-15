@@ -1,6 +1,6 @@
 import * as DotDot from 'dotenv';
 import { createConnection } from 'typeorm';
-import { Event } from '../Interfaces';
+import { Event } from '../interfaces';
 import 'reflect-metadata';
 
 DotDot.config();

@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import { readdirSync } from 'fs';
 import path = require('path');
-import { Command, Event, RegisterCommandOptions } from '../Interfaces';
+import { Command, Event, RegisterCommandOptions } from '../interfaces';
 
 class ExtendedClient extends Client {
   public commands: Collection<string, Command> = new Collection();

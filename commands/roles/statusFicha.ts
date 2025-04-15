@@ -1,7 +1,7 @@
 import { MessageEmbed } from 'discord.js';
 import { getRepository } from 'typeorm';
 import { Ficha } from '../../models/Ficha';
-import { Command } from '../../Interfaces';
+import { Command } from '../../interfaces';
 
 export const slash: Command = {
   name: 'status',

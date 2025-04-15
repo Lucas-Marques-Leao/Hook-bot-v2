@@ -1,5 +1,5 @@
 import { getConnection, getRepository } from 'typeorm';
-import { Command } from '../../Interfaces';
+import { Command } from '../../interfaces';
 import { Ficha } from '../../models/Ficha';
 import { Armas } from '../../models/Armas';
 

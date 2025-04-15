@@ -1,15 +1,16 @@
 import { Message, MessageEmbed, Permissions } from 'discord.js';
 import * as DOTDOT from 'dotenv';
-import { Command, Event } from '../Interfaces';
+import { Command, Event } from '../interfaces';
+import { env } from 'config/env';
 
 DOTDOT.config();
 
 export const event: Event = {
   name: 'messageCreate',
-  run: async (client, message: Message) => {
+  run: async (_, message: Message) => {
     if (
       message.author.bot ||
-      !message.content.startsWith(client.config.prefix!) ||
+      !message.content.startsWith(env.PREFIX) ||
       message.channel.type === 'DM'
     )
       return;

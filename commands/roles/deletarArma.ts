@@ -1,5 +1,5 @@
 import { getRepository } from 'typeorm';
-import { Command } from '../../Interfaces';
+import { Command } from '../../interfaces';
 import { Armas } from '../../models/Armas';
 
 export const slash: Command = {
