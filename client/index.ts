@@ -61,7 +61,9 @@ export class ExtendedClient extends Client<true> {
       entries.map(async entry => {
         const dirPath = join(commandPath, entry.name);
         const files = readdirSync(dirPath).filter(
-          file => file.endsWith('.ts') || file.endsWith('.js'),
+          file =>
+            !file.endsWith('.d.ts') &&
+            (file.endsWith('.ts') || file.endsWith('.js')),
         );
 
         await Promise.all(
@@ -94,7 +96,11 @@ export class ExtendedClient extends Client<true> {
     }
 
     const eventPath = join(__dirname, '..', 'events');
-    const files = readdirSync(eventPath);
+    const files = readdirSync(eventPath).filter(
+      file =>
+        !file.endsWith('.d.ts') &&
+        (file.endsWith('.ts') || file.endsWith('.js')),
+    );
 
     const imports = await Promise.all(
       files.map(async file => {

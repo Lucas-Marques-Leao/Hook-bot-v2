@@ -6,7 +6,8 @@
   "packageManager": "pnpm@9.14.2",
   "scripts": {
     "/./": "ts-node-dev --ignore-watch node_modules src/index.ts",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
+    "start": "node dist/main.js",
     "dev": "ts-node-dev --inspect --ignore-watch node_modules main.ts",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write ."
