@@ -1,82 +1,94 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
   EmbedBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 
-const slash = {
-  data: {
-    name: 'comandos',
-    description: 'Lista contendo todos os comandos do RPG',
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('comandos')
+    .setDescription('Lista contendo todos os comandos do RPG'),
 
-
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     const embed = new EmbedBuilder()
-      .setTitle('RPG na Quinta Edição de Dungeons & Dragons')
-      .setDescription('Comandos do RPG')
+      .setTitle('📘 Comandos do RPG - D&D 5e')
+      .setDescription('Veja abaixo todos os comandos disponíveis:')
       .setThumbnail(interaction.client.user!.displayAvatarURL())
       .addFields(
         {
+          name: '/rolar',
+          value:
+            'Rola um dado de acordo com o valor informado.\n*Exemplo: /rolar 1d20+5*',
+        },
+        {
           name: '/gerarficha',
           value:
-            'Comando para Criar uma Ficha.\nNão permite criar Fichas com o mesmo nome.',
+            'Cria uma nova ficha de personagem.\n*Evita nomes duplicados.*',
         },
         {
           name: '/status',
           value:
-            'Comando para Visualizar os Status (Ficha de um personagem).\nAdicione o Nome do personagem e a Id.',
-        },
-        {
-          name: '/deletarficha',
-          value: 'Comando para Deletar uma Ficha.\nUso exclusivo do DM!',
-        },
-        {
-          name: '/setributos',
-          value:
-            'Comando para Alterar os Atributos de uma Ficha.\nUso exclusivo do DM!',
+            'Mostra todos os detalhes de uma ficha.\n*Requer o nome da ficha.*',
         },
         {
           name: '/setidade',
           value:
-            'Comando para Alterar a Idade.\nAdicione a idade (em valor inteiro) à sua Ficha.',
-        },
-        {
-          name: '/addarma',
-          value:
-            'Comando para Criar uma Arma dentro de uma Ficha.\nUso exclusivo do DM!',
-        },
-        {
-          name: '/deletarma',
-          value: 'Comando para Deletar uma Arma.\nUso exclusivo do DM!',
+            'Define a idade de uma ficha.\n*Você deve ser o dono da ficha.*',
         },
         {
           name: '/armarse',
           value:
-            'Comando para Criar uma Arma existente dentro de uma Ficha pelo ID.\nUso exclusivo do DM!',
+            'Adiciona uma arma existente do arsenal ao inventário da ficha.\n*Por ID.*',
         },
         {
-          name: '/idarsenal',
-          value: 'Comando para Mostrar todas as Armas e seus Ids.',
+          name: '/addweapon',
+          value: 'Cria uma nova arma e vincula a uma ficha.\n*Somente DM.*',
         },
         {
-          name: '/arsenal',
-          value: 'Comando para Mostrar todas Armas Existentes.',
+          name: '/deletarma',
+          value: 'Deleta uma arma do banco.\n*Somente DM.*',
         },
         {
           name: '/verarma',
+          value: 'Exibe os detalhes de uma arma existente.\n*Por nome.*',
+        },
+        {
+          name: '/removerarma',
+          value: 'Remove uma arma do inventário da ficha.\n*Por nome.*',
+        },
+        {
+          name: '/arsenal',
+          value: 'Lista todas as armas disponíveis no arsenal.',
+        },
+        {
+          name: '/setributos',
+          value: 'Atualiza os atributos principais da ficha.\n*Somente DM.*',
+        },
+        {
+          name: '/verinventario',
           value:
-            'Comando para Mostrar as Informações de uma Arma pelo seu ID.',
+            'Lista todas as armas de uma ficha, com descrição e propriedades.',
+        },
+        {
+          name: '/deletarficha',
+          value: 'Remove uma ficha do banco de dados.\n*Somente DM.*',
+        },
+        {
+          name: '/verfichas',
+          value: 'Lista todas as fichas cadastradas no sistema.\n*Somente DM.*',
         },
       )
-      .setTimestamp()
+      .setColor('DarkOrange')
       .setFooter({ text: interaction.client.user!.tag })
-      .setColor('DarkOrange');
+      .setTimestamp();
 
-    return await interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({
+      embeds: [embed],
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };
 
-export default slash;
+export default command;

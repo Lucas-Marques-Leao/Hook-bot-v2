@@ -12,7 +12,7 @@ const slash = {
   run: async (interaction: CommandInteraction) => {
     if (!interaction.isChatInputCommand()) return;
 
-    const ping = interaction.client.ws.ping;
+    const { ping } = interaction.client.ws;
 
     await interaction.reply({
       content: `${interaction.user.username}, cacetada bicho! À propósito, o ping do bot é **${ping}ms**.`,

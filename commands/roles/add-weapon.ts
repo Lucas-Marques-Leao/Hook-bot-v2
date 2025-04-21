@@ -1,68 +1,50 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'addweapon',
-    description: 'Adicionar uma arma a uma ficha',
-    options: [
-      {
-        name: 'character',
-        description: 'Nome da ficha',
-        type: 3, // STRING
-        required: true,
-      },
-      {
-        name: 'name',
-        description: 'Nome da arma',
-        type: 3,
-        required: true,
-      },
-      {
-        name: 'damage',
-        description: 'Dado de dano',
-        type: 3,
-        required: true,
-      },
-      {
-        name: 'image',
-        description: 'URL da imagem',
-        type: 3,
-        required: true,
-      },
-      {
-        name: 'properties',
-        description: 'Propriedades (opcional)',
-        type: 3,
-        required: false,
-      },
-      {
-        name: 'magic',
-        description: 'Bônus mágico',
-        type: 4,
-        required: false,
-      },
-      {
-        name: 'description',
-        description: 'Descrição da arma',
-        type: 3,
-        required: false,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('addweapon')
+    .setDescription('Adicionar uma arma a uma ficha')
+    .addStringOption(option =>
+      option
+        .setName('character')
+        .setDescription('Nome da ficha')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option.setName('name').setDescription('Nome da arma').setRequired(true),
+    )
+    .addStringOption(option =>
+      option.setName('damage').setDescription('Dado de dano').setRequired(true),
+    )
+    .addStringOption(option =>
+      option
+        .setName('image')
+        .setDescription('URL da imagem da arma')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option.setName('properties').setDescription('Propriedades da arma'),
+    )
+    .addIntegerOption(option =>
+      option.setName('magic').setDescription('Bônus mágico'),
+    )
+    .addStringOption(option =>
+      option.setName('description').setDescription('Descrição da arma'),
+    ),
 
-
-   run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     const characterName = interaction.options.getString('character', true);
     const weaponName = interaction.options.getString('name', true);
     const damage = interaction.options.getString('damage', true);
     const imageUrl = interaction.options.getString('image', true);
-    const properties = interaction.options.getString('properties') ?? 'Existe, e é isso';
+    const properties =
+      interaction.options.getString('properties') ?? 'Existe, e é isso';
     const magicBonus = interaction.options.getInteger('magic') ?? 0;
     const description =
       interaction.options.getString('description') ??
@@ -73,12 +55,15 @@ const slash = {
     });
 
     if (!character) {
-      return interaction.reply({ content: 'Ficha não encontrada.' });
+      return interaction.reply({
+        content: '❌ Ficha não encontrada.',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     if (
       interaction.user.id === character.authorId ||
-      interaction.user.username === 'Luk at you'
+      interaction.user.username === 'lukatyou'
     ) {
       try {
         const newWeapon = await prisma.weapon.create({
@@ -96,20 +81,21 @@ const slash = {
         });
 
         return interaction.reply({
-          content: `A arma **${newWeapon.name}** foi adicionada com sucesso à ficha **${character.characterName}**!`,
+          content: `🗡️ A arma **${newWeapon.name}** foi adicionada com sucesso à ficha **${character.characterName}**!`,
         });
-      } catch (err) {
-        console.error(err);
+      } catch {
         return interaction.reply({
-          content: 'Erro ao adicionar a arma à ficha.',
+          content: '❌ Erro ao adicionar a arma à ficha.',
+          flags: MessageFlags.Ephemeral,
         });
       }
     }
 
     return interaction.reply({
-      content: 'Você não tem permissão para editar esta ficha.',
+      content: '⚠️ Você não tem permissão para editar esta ficha.',
+      flags: MessageFlags.Ephemeral,
     });
   },
 };
 
-export default slash;
+export default command;

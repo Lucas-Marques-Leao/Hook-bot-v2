@@ -1,4 +1,3 @@
-import 'reflect-metadata';
-import Client from './client';
+import { ExtendedClient } from './client';
 
-new Client().init();
+new ExtendedClient().init();

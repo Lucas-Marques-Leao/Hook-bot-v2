@@ -1,76 +1,76 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'setributos',
-    description: 'Mudança de atributos de uma ficha',
-    options: [
-      {
-        name: 'nome',
-        description: 'Nome do personagem',
-        type: 3, // STRING
-        required: true,
-      },
-      {
-        name: 'for',
-        description: 'Atributo de Força',
-        type: 4, // INTEGER
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-      {
-        name: 'des',
-        description: 'Atributo de Destreza',
-        type: 4,
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-      {
-        name: 'con',
-        description: 'Atributo de Constituição',
-        type: 4,
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-      {
-        name: 'int',
-        description: 'Atributo de Inteligência',
-        type: 4,
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-      {
-        name: 'sab',
-        description: 'Atributo de Sabedoria',
-        type: 4,
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-      {
-        name: 'car',
-        description: 'Atributo de Carisma',
-        type: 4,
-        minValue: 6,
-        maxValue: 26,
-        required: true,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('setributos')
+    .setDescription('Atualiza os atributos de uma ficha (DM)')
+    .addStringOption(option =>
+      option
+        .setName('nome')
+        .setDescription('Nome do personagem')
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('for')
+        .setDescription('Força')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('des')
+        .setDescription('Destreza')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('con')
+        .setDescription('Constituição')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('int')
+        .setDescription('Inteligência')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('sab')
+        .setDescription('Sabedoria')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('car')
+        .setDescription('Carisma')
+        .setMinValue(6)
+        .setMaxValue(26)
+        .setRequired(true),
+    ),
 
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     if (interaction.user.username !== 'Luk at you') {
-      return await interaction.reply({ content: 'Você não é o DM' });
+      return interaction.reply({
+        content: '⚠️ Você não é o DM!',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     const characterName = interaction.options.getString('nome', true);
@@ -86,8 +86,9 @@ const slash = {
     });
 
     if (!character) {
-      return await interaction.reply({
-        content: 'Esta ficha não foi encontrada.',
+      return interaction.reply({
+        content: '❌ Esta ficha não foi encontrada.',
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -105,15 +106,15 @@ const slash = {
       });
 
       return await interaction.reply({
-        content: `Atributos atualizados para ${characterName}!`,
+        content: `📊 Atributos de **${characterName}** atualizados com sucesso!`,
       });
-    } catch (err) {
-      console.error(err);
-      return await interaction.reply({
-        content: 'Erro ao tentar inserir os atributos.',
+    } catch {
+      return interaction.reply({
+        content: '❌ Erro ao tentar atualizar os atributos.',
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
 };
 
-export default slash;
+export default command;

@@ -1,51 +1,47 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  MessageFlags,
+  SlashCommandBuilder,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'gerarficha',
-    description: 'Gera uma ficha de RPG',
-    options: [
-      {
-        name: 'nome',
-        description: 'O nome do seu personagem',
-        type: 3, // STRING
-        required: true,
-      },
-      {
-        name: 'raça',
-        description: 'A raça do seu personagem',
-        type: 3,
-        required: true,
-      },
-      {
-        name: 'classe',
-        description: 'A classe principal do seu personagem',
-        type: 3,
-        required: true,
-      },
-      {
-        name: 'nivel',
-        description: 'O nível do seu personagem',
-        type: 4,
-        required: true,
-      },
-      {
-        name: 'foto',
-        description: 'URL da foto do seu personagem',
-        type: 3,
-        required: true,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('gerarficha')
+    .setDescription('Gera uma ficha de RPG')
+    .addStringOption(option =>
+      option
+        .setName('nome')
+        .setDescription('O nome do seu personagem')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option
+        .setName('raça')
+        .setDescription('A raça do seu personagem')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option
+        .setName('classe')
+        .setDescription('A classe principal do seu personagem')
+        .setRequired(true),
+    )
+    .addIntegerOption(option =>
+      option
+        .setName('nivel')
+        .setDescription('O nível do seu personagem')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option
+        .setName('foto')
+        .setDescription('URL da foto do seu personagem')
+        .setRequired(true),
+    ),
 
-
-   run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     const name = interaction.options.getString('nome', true);
     const race = interaction.options.getString('raça', true);
     const level = interaction.options.getInteger('nivel', true);
@@ -53,7 +49,6 @@ const slash = {
     const imageUrl = interaction.options.getString('foto', true);
 
     try {
-      // Checar se já existe
       const existing = await prisma.character.findFirst({
         where: { characterName: name },
       });
@@ -61,7 +56,7 @@ const slash = {
       if (existing) {
         return interaction.reply({
           content: 'Já existe uma ficha com esse nome!',
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
       }
 
@@ -76,17 +71,17 @@ const slash = {
         },
       });
 
-      return interaction.reply(
-        `A ficha de: **${name}**, da raça **${race}** e da classe **${mainClass}** foi adicionada por **${interaction.user.username}**.`,
-      );
-    } catch (err) {
-      console.error(err);
       return interaction.reply({
-        content: 'Algo deu errado ao inserir a sua ficha.',
-        ephemeral: true,
+        content: `✅ Ficha de **${name}** criada com sucesso!\n• Raça: **${race}**\n• Classe: **${mainClass}**\n• Nível: **${level}**`,
+        flags: MessageFlags.Ephemeral,
+      });
+    } catch {
+      return interaction.reply({
+        content: '❌ Algo deu errado ao inserir a sua ficha.',
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
 };
 
-export default slash;
+export default command;

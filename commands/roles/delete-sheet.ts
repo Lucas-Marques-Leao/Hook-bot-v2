@@ -1,29 +1,28 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'deletarficha',
-    description: 'Deleta uma Ficha (DM)',
-    options: [
-      {
-        name: 'nome',
-        description: 'O nome da ficha que será excluída',
-        type: 3,
-        required: true,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('deletarficha')
+    .setDescription('Deleta uma Ficha (somente DM)')
+    .addStringOption(option =>
+      option
+        .setName('nome')
+        .setDescription('O nome da ficha que será excluída')
+        .setRequired(true),
+    ),
 
-
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.user.username !== 'Luk at you') {
-      return await interaction.reply({ content: 'Você não é o DM!' });
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
+    if (interaction.user.username !== 'lukatyou') {
+      return interaction.reply({
+        content: '⚠️ Você não é o DM!',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     const characterName = interaction.options.getString('nome', true);
@@ -33,7 +32,10 @@ const slash = {
     });
 
     if (!character) {
-      return await interaction.reply({ content: 'Ficha não encontrada.' });
+      return interaction.reply({
+        content: '❌ Ficha não encontrada.',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     try {
@@ -42,15 +44,15 @@ const slash = {
       });
 
       return await interaction.reply({
-        content: `A Ficha **${characterName}** foi deletada com sucesso!`,
+        content: `🗑️ A ficha **${characterName}** foi deletada com sucesso!`,
       });
-    } catch (err) {
-      console.error(err);
-      return await interaction.reply({
-        content: 'Algo deu errado ao deletar a Ficha.',
+    } catch {
+      return interaction.reply({
+        content: '❌ Algo deu errado ao deletar a ficha.',
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
 };
 
-export default slash;
+export default command;

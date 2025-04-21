@@ -1,27 +1,35 @@
+/* eslint-disable no-console */
 import {
   Client,
   Collection,
   ApplicationCommandDataResolvable,
-  CommandInteraction,
   Partials,
   Events,
+  ChatInputCommandInteraction,
 } from 'discord.js';
 import { readdirSync } from 'fs';
-import path from 'path';
-import { env } from 'config/env';
+import { join } from 'path';
+import { env } from '../config/env';
 
 export type BotCommand = {
   data: ApplicationCommandDataResolvable;
-  run: (interaction: CommandInteraction) => unknown;
+  run: (options: {
+    client: Client<true>;
+    interaction: ChatInputCommandInteraction;
+  }) => Promise<unknown> | unknown;
 };
-
-export class ExtendedClient extends Client {
+export class ExtendedClient extends Client<true> {
   public commands = new Collection<string, BotCommand>();
 
   constructor() {
     super({
-      intents: ["GuildMessages","Guilds"],
-      partials: [Partials.Channel, Partials.GuildMember, Partials.User, Partials.Message ],
+      intents: ['GuildMessages', 'Guilds'],
+      partials: [
+        Partials.Channel,
+        Partials.GuildMember,
+        Partials.User,
+        Partials.Message,
+      ],
     });
   }
 
@@ -30,34 +38,44 @@ export class ExtendedClient extends Client {
     return imported.default as BotCommand;
   }
 
-  async registerCommands(commands: ApplicationCommandDataResolvable[], guildId?: string) {
+  async registerCommands(
+    commands: ApplicationCommandDataResolvable[],
+    guildId?: string,
+  ) {
     if (guildId) {
       this.guilds.cache.get(guildId)?.commands.set(commands);
-      console.log('✅ Comandos registrados localmente');
     } else {
       this.application?.commands.set(commands);
-      console.log('✅ Comandos registrados globalmente');
     }
   }
 
   async registerModules() {
     const slashCommands: ApplicationCommandDataResolvable[] = [];
-    const commandPath = path.join(__dirname, '..', 'Commands');
+    const commandPath = join(__dirname, '..', 'commands');
 
-    for (const dir of readdirSync(commandPath)) {
-      const files = readdirSync(`${commandPath}/${dir}`).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+    const entries = readdirSync(commandPath, { withFileTypes: true }).filter(
+      e => e.isDirectory(),
+    );
 
-      for (const file of files) {
-        const filePath = `${commandPath}/${dir}/${file}`;
-        const command = await this.importFile(filePath);
+    await Promise.all(
+      entries.map(async entry => {
+        const dirPath = join(commandPath, entry.name);
+        const files = readdirSync(dirPath).filter(
+          file => file.endsWith('.ts') || file.endsWith('.js'),
+        );
 
-        if (!command || !command.data || !('name' in command.data)) continue;
-
-        this.commands.set(command.data.name, command);
-        slashCommands.push(command.data);
-        console.log(`✅ Comando carregado: ${command.data.name}`);
-      }
-    }
+        await Promise.all(
+          files.map(async file => {
+            const filePath = join(dirPath, file);
+            const command = await this.importFile(filePath);
+            if (command && command.data && 'name' in command.data) {
+              this.commands.set(command.data.name, command);
+              slashCommands.push(command.data);
+            }
+          }),
+        );
+      }),
+    );
 
     this.on(Events.ClientReady, () => {
       this.registerCommands(slashCommands, env.TESTSERVER);
@@ -75,12 +93,21 @@ export class ExtendedClient extends Client {
       console.log('⚠️ TESTSERVER não configurado.');
     }
 
-    const eventPath = path.join(__dirname, '..', 'events');
-    for (const file of readdirSync(eventPath)) {
-      const { event } = await import(`${eventPath}/${file}`);
-      if (!event?.name || !event?.run) continue;
-      this.on(event.name, event.run.bind(null, this));
-      console.log(`📡 Evento registrado: ${event.name}`);
-    }
+    const eventPath = join(__dirname, '..', 'events');
+    const files = readdirSync(eventPath);
+
+    const imports = await Promise.all(
+      files.map(async file => {
+        const { event } = await import(`${eventPath}/${file}`);
+        return event;
+      }),
+    );
+
+    imports
+      .filter(event => event?.name && event?.run)
+      .forEach(event => {
+        this.on(event.name, event.run.bind(null, this));
+        console.log(`📡 Evento registrado: ${event.name}`);
+      });
   }
 }

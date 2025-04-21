@@ -1,29 +1,28 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'deletarma',
-    description: 'Deleta uma arma (DM)',
-    options: [
-      {
-        name: 'id',
-        description: 'O ID da arma que será excluída',
-        type: 3, // STRING
-        required: true,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('deletarma')
+    .setDescription('Deleta uma arma do banco de dados (somente DM)')
+    .addStringOption(option =>
+      option
+        .setName('id')
+        .setDescription('O ID da arma que será excluída')
+        .setRequired(true),
+    ),
 
-
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.user.username !== 'Luk at you') {
-      return await interaction.reply({ content: 'Você não é o DM!' });
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
+    if (interaction.user.username !== 'lukatyou') {
+      return interaction.reply({
+        content: '⚠️ Você não é o DM!',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     const id = interaction.options.getString('id', true);
@@ -33,22 +32,25 @@ const slash = {
     });
 
     if (!weapon) {
-      return await interaction.reply({ content: 'Arma não encontrada.' });
+      return interaction.reply({
+        content: '❌ Arma não encontrada.',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     try {
       await prisma.weapon.delete({ where: { id: weapon.id } });
 
       return await interaction.reply({
-        content: `A arma foi deletada com sucesso!`,
+        content: `🗑️ A arma **${weapon.name}** foi deletada com sucesso!`,
       });
-    } catch (err) {
-      console.error(err);
-      return await interaction.reply({
-        content: 'Algo deu errado ao deletar a arma.',
+    } catch {
+      return interaction.reply({
+        content: '❌ Algo deu errado ao deletar a arma.',
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
 };
 
-export default slash;
+export default command;

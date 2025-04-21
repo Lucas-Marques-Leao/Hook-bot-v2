@@ -1,7 +1,6 @@
-import { Message, MessageEmbed, Permissions } from 'discord.js';
-import { Command, Event } from '../interfaces';
-import { env } from 'config/env';
-
+import { ChannelType, Message } from 'discord.js';
+import { Event } from '../interfaces';
+import { env } from '../config/env';
 
 export const event: Event = {
   name: 'messageCreate',
@@ -9,7 +8,7 @@ export const event: Event = {
     if (
       message.author.bot ||
       !message.content.startsWith(env.PREFIX) ||
-      message.channel.type === 'DM'
+      message.channel.type === ChannelType.DM
     )
       return;
 

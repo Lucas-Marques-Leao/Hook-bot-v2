@@ -1,39 +1,48 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
   EmbedBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'arsenal',
-    description: 'Mostra todas as armas do arsenal',
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('arsenal')
+    .setDescription('Mostra todas as armas disponíveis no arsenal'),
 
-
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     const weapons = await prisma.weapon.findMany();
 
-    const arsenal = weapons.map(weapon => {
-      return weapon.magicBonus && weapon.magicBonus !== 0
+    const arsenal = weapons.map(weapon =>
+      weapon.magicBonus && weapon.magicBonus !== 0
         ? `${weapon.name} +${weapon.magicBonus}`
-        : weapon.name;
-    });
+        : weapon.name,
+    );
+
+    const weaponList = arsenal.join('\n').slice(0, 1024); // Discord limit por field
 
     const embed = new EmbedBuilder()
-      .setTitle('Arsenal D&D 5e')
+      .setTitle('🧰 Arsenal D&D 5e')
       .setURL('https://www.lmlservertest.x10.mx/index.html')
-      .addFields([{ name: 'Armas', value: arsenal.join('\n').slice(0, 1024) || 'Nenhuma arma encontrada' }])
+      .setDescription('Lista de todas as armas disponíveis no arsenal:')
+      .addFields([
+        {
+          name: 'Armas',
+          value: weaponList || 'Nenhuma arma encontrada.',
+        },
+      ])
       .setThumbnail(interaction.client.user!.displayAvatarURL())
+      .setColor('Orange')
       .setTimestamp()
-      .setFooter({ text: interaction.client.user!.tag })
-      .setColor('Orange');
+      .setFooter({ text: interaction.client.user!.tag });
 
-    return await interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({
+      embeds: [embed],
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };
 
-export default slash;
+export default command;

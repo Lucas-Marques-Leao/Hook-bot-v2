@@ -1,29 +1,26 @@
-import { Interaction, CommandInteractionOptionResolver } from 'discord.js';
-import { Event } from '../interfaces';
-import { ExtendedInteraction } from '../interfaces/command';
+import { Events, Interaction } from 'discord.js';
+import { ExtendedClient } from '../client';
 
-const event: Event = {
-  name: 'interactionCreate',
-  run: async (client, interaction: Interaction) => {
-    if (!interaction.isCommand()) return;
+export const event = {
+  name: Events.InteractionCreate,
+  async run(client: ExtendedClient, interaction: Interaction) {
+    if (!interaction.isChatInputCommand()) return;
 
     const command = client.commands.get(interaction.commandName);
-
     if (!command) {
-      await interaction.reply('Este comando não existe');
-      return;
+      await interaction.reply({
+        content: '❌ Comando não encontrado.',
+        ephemeral: true,
+      });
     }
 
-    command.run({
-      args: interaction.options as CommandInteractionOptionResolver,
-      client,
-      interaction: interaction as ExtendedInteraction,
-    });
-
-    // if (cmd.permissions && cmd.permissions.length > 0){
-    //   if (!interaction.member.permissions.has(cmd.permissions)) return interaction.reply({ content: `Você não tem permissão para usar este comando.`});
-    // }
+    try {
+      await command.run({ client, interaction });
+    } catch {
+      await interaction.reply({
+        content: '❌ Ocorreu um erro ao executar o comando.',
+        ephemeral: true,
+      });
+    }
   },
 };
-
-export default event;

@@ -1,63 +1,69 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
   EmbedBuilder,
-
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'verarma',
-    description: 'Mostra as características de uma arma',
-    options: [
-      {
-        name: 'id',
-        description: 'ID da arma',
-        type: 3, // STRING
-        required: true,
-      },
-      {
-        name: 'mostrar',
-        description: 'Marque True se quiser que outros vejam',
-        type: 5, // BOOLEAN
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('verarma')
+    .setDescription('Mostra as características de uma arma')
+    .addStringOption(option =>
+      option.setName('nome').setDescription('Nome da arma').setRequired(true),
+    )
+    .addBooleanOption(option =>
+      option
+        .setName('mostrar')
+        .setDescription('Marque True se quiser que outros vejam'),
+    ),
 
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
+    const name = interaction.options.getString('nome', true);
+    const show = interaction.options.getBoolean('mostrar');
 
-    const id = interaction.options.getString('id', true);
-    const mostrar = interaction.options.getBoolean('mostrar');
-
-    const weapon = await prisma.weapon.findUnique({ where: { id } });
+    const weapon = await prisma.weapon.findFirst({ where: { name } });
 
     if (!weapon) {
-      return await interaction.reply({ content: 'Arma não encontrada.' });
+      return interaction.reply({
+        content: '❌ Arma não encontrada.',
+        flags: MessageFlags.Ephemeral,
+      });
     }
 
     const hasBonus = weapon.magicBonus && weapon.magicBonus !== 0;
-    const weaponName = hasBonus ? `${weapon.name} +${weapon.magicBonus}` : weapon.name;
-    const damage = hasBonus ? `${weapon.damage} +${weapon.magicBonus}` : weapon.damage;
+    const weaponName = hasBonus
+      ? `${weapon.name} +${weapon.magicBonus}`
+      : weapon.name;
+    const damage = hasBonus
+      ? `${weapon.damage} +${weapon.magicBonus}`
+      : weapon.damage;
 
     const embed = new EmbedBuilder()
-      .setTitle(`Arsenal > ${weapon.name}`)
+      .setTitle(`🗡️ Arsenal > ${weapon.name}`)
       .setURL('https://www.lmlservertest.x10.mx/index.html')
       .setThumbnail(interaction.client.user!.displayAvatarURL())
       .addFields(
         { name: 'Nome', value: weaponName, inline: true },
         { name: 'Dano Base', value: damage, inline: true },
-        { name: 'Descrição', value: weapon.description },
-        { name: 'Propriedades', value: weapon.properties },
+        { name: 'Descrição', value: weapon.description || 'Sem descrição.' },
+        {
+          name: 'Propriedades',
+          value: weapon.properties || 'Nenhuma propriedade.',
+        },
       )
       .setImage(weapon.imageUrl)
       .setTimestamp()
       .setFooter({ text: interaction.client.user!.tag })
       .setColor('Orange');
 
-    return await interaction.reply({ embeds: [embed], ephemeral: !mostrar });
+    return interaction.reply({
+      embeds: [embed],
+      flags: show ? undefined : MessageFlags.Ephemeral,
+    });
   },
 };
 
-export default slash;
+export default command;

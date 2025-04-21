@@ -1,32 +1,29 @@
 import {
-  ApplicationCommandDataResolvable,
   ChatInputCommandInteraction,
+  SlashCommandBuilder,
+  MessageFlags,
 } from 'discord.js';
+import { BotCommand } from '../../client';
 import prisma from '../../lib/db';
 
-const slash = {
-  data: {
-    name: 'armarse',
-    description: 'Põe uma arma do arsenal no seu inventário',
-    options: [
-      {
-        name: 'nome',
-        description: 'O nome da sua ficha',
-        type: 3, // STRING
-        required: true,
-      },
-      {
-        name: 'id',
-        description: 'O ID da arma do arsenal',
-        type: 3, // STRING
-        required: true,
-      },
-    ],
-  } satisfies ApplicationCommandDataResolvable,
+const command: BotCommand = {
+  data: new SlashCommandBuilder()
+    .setName('armarse')
+    .setDescription('Põe uma arma do arsenal no seu inventário')
+    .addStringOption(option =>
+      option
+        .setName('nome')
+        .setDescription('O nome da sua ficha')
+        .setRequired(true),
+    )
+    .addStringOption(option =>
+      option
+        .setName('id')
+        .setDescription('O ID da arma do arsenal')
+        .setRequired(true),
+    ),
 
-  run: async (interaction: ChatInputCommandInteraction) => {
-    if (!interaction.isChatInputCommand()) return;
-
+  async run({ interaction }: { interaction: ChatInputCommandInteraction }) {
     const characterName = interaction.options.getString('nome', true);
     const weaponId = interaction.options.getString('id', true);
 
@@ -39,9 +36,9 @@ const slash = {
     });
 
     if (!character || !weapon) {
-      return await interaction.reply({
-        content: 'Ficha ou arma não encontradas.',
-        ephemeral: true,
+      return interaction.reply({
+        content: '❌ Ficha ou arma não encontradas.',
+        flags: MessageFlags.Ephemeral,
       });
     }
 
@@ -56,16 +53,15 @@ const slash = {
       });
 
       return await interaction.reply({
-        content: 'Arma adicionada com sucesso!',
+        content: `🗡️ A arma **${weapon.name}** foi adicionada ao inventário de **${character.characterName}**.`,
       });
-    } catch (err) {
-      console.error(err);
-      return await interaction.reply({
-        content: 'Algo deu errado ao adicionar a arma à sua ficha.',
-        ephemeral: true,
+    } catch {
+      return interaction.reply({
+        content: '❌ Algo deu errado ao adicionar a arma à sua ficha.',
+        flags: MessageFlags.Ephemeral,
       });
     }
   },
 };
 
-export default slash;
+export default command;
